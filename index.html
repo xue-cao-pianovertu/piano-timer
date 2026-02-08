@@ -116,4 +116,25 @@
             secondsElapsed++;
             
             // This stretches the visual countdown based on the ratio
-            // If
+            // If ratio is 1.5, every 1.5 real seconds, the clock drops 1 display second
+            let visualSecondsRemaining = displayTotalSeconds - (secondsElapsed / ratio);
+
+            if (secondsElapsed <= actualTotalSeconds) {
+                displayElement.innerText = formatTime(Math.max(0, visualSecondsRemaining));
+            } else {
+                clearInterval(interval);
+                displayElement.innerText = "Done!";
+                alert("Great practice session!");
+            }
+        }, 1000);
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+</script>
+
+</body>
+</html>
