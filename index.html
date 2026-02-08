@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piano Practice Pro</title>
+    <title>Piano Practice Timer</title>
     <style>
         :root {
             --bg-color: #fdf6e3;
@@ -23,59 +23,91 @@
             margin: 0;
             padding: 20px;
         }
-        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 500px; }
-        #timer { font-size: 8rem; font-weight: bold; color: var(--timer-color); margin: 20px 0; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #586e75; }
-        input { 
-            width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #eee; 
-            border-radius: 10px; box-sizing: border-box; 
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 90%; 
+            max-width: 500px; 
+            text-align: center; 
         }
+        #timer { 
+            font-size: 8rem; 
+            font-weight: bold; 
+            color: var(--timer-color); 
+            margin: 20px 0; 
+            font-variant-numeric: tabular-nums;
+        }
+        .input-group { margin-bottom: 25px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #586e75; font-size: 1.2rem; }
+        
+        /* Main Input Style */
+        .main-input { 
+            width: 100%; padding: 15px; font-size: 2rem; border: 2px solid #eee; 
+            border-radius: 12px; box-sizing: border-box; background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        /* Subtle Ratio Style */
+        .ratio-input {
+            width: 80px; padding: 8px; font-size: 1rem; border: 1px solid #ddd;
+            border-radius: 8px; color: #93a1a1; background: #fff;
+        }
+        .ratio-label { font-size: 0.9rem; color: #93a1a1; margin-top: 10px; }
+
         button {
             width: 100%; padding: 25px; font-size: 2rem; font-weight: bold;
             background-color: var(--accent-color); color: white; border: none;
             border-radius: 15px; cursor: pointer; margin-top: 20px;
+            box-shadow: 0 6px #1e8449;
         }
-        #status { margin-top: 15px; font-weight: bold; color: #93a1a1; }
+        button:active { box-shadow: 0 2px #1e8449; transform: translateY(4px); }
     </style>
 </head>
 <body>
 
-<div class="container" id="app">
-    <h1>🎹 Practice Timer</h1>
+<div class="container">
+    <h1>🎹 Piano Practice</h1>
     
     <div id="setup">
         <div class="input-group">
-            <label>Display Time (Minutes she sees):</label>
-            <input type="number" id="goalInput" value="30">
+            <label for="goalInput">Minutes to practice:</label>
+            <input type="number" id="goalInput" class="main-input" value="30">
         </div>
-        <div class="input-group">
-            <label>Actual Time (Minutes she practices):</label>
-            <input type="number" id="actualInput" value="45">
+        
+        <div class="input-group" style="text-align: center;">
+            <label for="ratioInput" class="ratio-label">Ratio (1.5 for 30/45)</label>
+            <input type="number" step="0.1" id="ratioInput" class="ratio-input" value="1.5">
         </div>
-        <button onclick="startTimer()">START PRACTICE</button>
+        
+        <button onclick="startTimer()">START</button>
     </div>
 
     <div id="activeTimer" style="display:none;">
         <div id="timer">00:00</div>
-        <div id="status">Keep going!</div>
+        <div id="status" style="font-weight:bold; color:#93a1a1; font-size: 1.5rem;">Happy Playing!</div>
     </div>
 </div>
 
 <script>
     function startTimer() {
         const goalMins = parseFloat(document.getElementById('goalInput').value);
-        const actualMins = parseFloat(document.getElementById('actualInput').value);
+        const ratio = parseFloat(document.getElementById('ratioInput').value);
         
-        if (isNaN(goalMins) || isNaN(actualMins)) return alert("Please enter numbers!");
+        if (isNaN(goalMins) || isNaN(ratio)) {
+            alert("Please enter numbers!");
+            return;
+        }
 
-        // Transition UI
         document.getElementById('setup').style.display = 'none';
         document.getElementById('activeTimer').style.display = 'block';
         
         const displayElement = document.getElementById('timer');
-        const actualTotalSeconds = actualMins * 60;
+        
+        // Setup Logic
         const displayTotalSeconds = goalMins * 60;
+        const actualTotalSeconds = displayTotalSeconds * ratio;
         let secondsElapsed = 0;
 
         displayElement.innerText = formatTime(displayTotalSeconds);
@@ -83,26 +115,5 @@
         const interval = setInterval(() => {
             secondsElapsed++;
             
-            // Formula: DisplayValue = DisplayTotal - (ActualProgress * DisplayTotal)
-            let visualSecondsRemaining = displayTotalSeconds - (secondsElapsed * (displayTotalSeconds / actualTotalSeconds));
-
-            if (secondsElapsed <= actualTotalSeconds) {
-                displayElement.innerText = formatTime(Math.max(0, visualSecondsRemaining));
-            } else {
-                clearInterval(interval);
-                displayElement.innerText = "Done!";
-                document.getElementById('status').innerText = "Session Complete!";
-                alert("Great practice session!");
-            }
-        }, 1000);
-    }
-
-    function formatTime(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60);
-        return `${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-</script>
-
-</body>
-</html>
+            // This stretches the visual countdown based on the ratio
+            // If
