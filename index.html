@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Practice Timer</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --accent-color: #27ae60;
+            --timer-color: #e67e22;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; opacity: 0.8; }
+        
+        #timer {
+            font-size: 8rem;
+            font-weight: 800;
+            margin: 40px 0;
+            color: var(--timer-color);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        button {
+            padding: 25px 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px #1e8449;
+            transition: all 0.1s;
+        }
+        button:active {
+            box-shadow: 0 2px #1e8449;
+            transform: translateY(4px);
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Piano Practice</h1>
+    <p>Practice makes perfect!</p>
+
+    <div id="timer">30:00</div>
+    
+    <button onclick="startTimer()" id="startBtn">START TIMER</button>
+    <div id="status">Ready</div>
+
+    <script>
+        function startTimer() {
+            // Hide the button and update status
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('status').innerText = "Session in Progress...";
+            
+            const displayElement = document.getElementById('timer');
+            
+            // Logic: 45 real minutes stretched to look like 30 minutes
+            const actualMinutes = 45;
+            const displayMinutes = 30;
+            
+            const actualTotalSeconds = actualMinutes * 60;
+            const displayTotalSeconds = displayMinutes * 60;
+            
+            let secondsElapsed = 0;
+
+            const timerInterval = setInterval(() => {
+                secondsElapsed++;
+
+                // This calculation slows down the display countdown
+                // Every 1.5 real seconds, the display only drops by 1 second.
+                let visualSecondsRemaining = displayTotalSeconds - (secondsElapsed * (displayTotalSeconds / actualTotalSeconds));
+
+                if (secondsElapsed <= actualTotalSeconds) {
+                    displayElement.innerText = formatTime(Math.max(0, visualSecondsRemaining));
+                } else {
+                    clearInterval(timerInterval);
+                    displayElement.innerText = "Done!";
+                    document.getElementById('status').innerText = "Practice Finished!";
+                    alert("Fantastic job today!");
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+    </script>
+</body>
+</html>
