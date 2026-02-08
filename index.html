@@ -3,111 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piano Practice Timer</title>
+    <title>Piano Practice Pro</title>
     <style>
         :root {
-            --bg-color: #f8f9fa;
-            --text-color: #2c3e50;
-            --accent-color: #27ae60;
-            --timer-color: #e67e22;
+            --bg-color: #fdf6e3;
+            --text-color: #073642;
+            --accent-color: #2aa198;
+            --timer-color: #d33682;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            text-align: center;
+            padding: 20px;
         }
-        h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        p { font-size: 1.2rem; opacity: 0.8; }
-        
-        #timer {
-            font-size: 8rem;
-            font-weight: 800;
-            margin: 40px 0;
-            color: var(--timer-color);
-            font-variant-numeric: tabular-nums;
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 500px; }
+        #timer { font-size: 8rem; font-weight: bold; color: var(--timer-color); margin: 20px 0; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #586e75; }
+        input { 
+            width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #eee; 
+            border-radius: 10px; box-sizing: border-box; 
         }
-        
         button {
-            padding: 25px 60px;
-            font-size: 2rem;
-            font-weight: bold;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 8px #1e8449;
-            transition: all 0.1s;
+            width: 100%; padding: 25px; font-size: 2rem; font-weight: bold;
+            background-color: var(--accent-color); color: white; border: none;
+            border-radius: 15px; cursor: pointer; margin-top: 20px;
         }
-        button:active {
-            box-shadow: 0 2px #1e8449;
-            transform: translateY(4px);
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #7f8c8d;
-        }
+        #status { margin-top: 15px; font-weight: bold; color: #93a1a1; }
     </style>
 </head>
 <body>
 
-    <h1>Piano Practice</h1>
-    <p>Practice makes perfect!</p>
-
-    <div id="timer">30:00</div>
+<div class="container" id="app">
+    <h1>🎹 Practice Timer</h1>
     
-    <button onclick="startTimer()" id="startBtn">START TIMER</button>
-    <div id="status">Ready</div>
+    <div id="setup">
+        <div class="input-group">
+            <label>Display Time (Minutes she sees):</label>
+            <input type="number" id="goalInput" value="30">
+        </div>
+        <div class="input-group">
+            <label>Actual Time (Minutes she practices):</label>
+            <input type="number" id="actualInput" value="45">
+        </div>
+        <button onclick="startTimer()">START PRACTICE</button>
+    </div>
 
-    <script>
-        function startTimer() {
-            // Hide the button and update status
-            document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('status').innerText = "Session in Progress...";
+    <div id="activeTimer" style="display:none;">
+        <div id="timer">00:00</div>
+        <div id="status">Keep going!</div>
+    </div>
+</div>
+
+<script>
+    function startTimer() {
+        const goalMins = parseFloat(document.getElementById('goalInput').value);
+        const actualMins = parseFloat(document.getElementById('actualInput').value);
+        
+        if (isNaN(goalMins) || isNaN(actualMins)) return alert("Please enter numbers!");
+
+        // Transition UI
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('activeTimer').style.display = 'block';
+        
+        const displayElement = document.getElementById('timer');
+        const actualTotalSeconds = actualMins * 60;
+        const displayTotalSeconds = goalMins * 60;
+        let secondsElapsed = 0;
+
+        displayElement.innerText = formatTime(displayTotalSeconds);
+
+        const interval = setInterval(() => {
+            secondsElapsed++;
             
-            const displayElement = document.getElementById('timer');
-            
-            // Logic: 45 real minutes stretched to look like 30 minutes
-            const actualMinutes = 45;
-            const displayMinutes = 30;
-            
-            const actualTotalSeconds = actualMinutes * 60;
-            const displayTotalSeconds = displayMinutes * 60;
-            
-            let secondsElapsed = 0;
+            // Formula: DisplayValue = DisplayTotal - (ActualProgress * DisplayTotal)
+            let visualSecondsRemaining = displayTotalSeconds - (secondsElapsed * (displayTotalSeconds / actualTotalSeconds));
 
-            const timerInterval = setInterval(() => {
-                secondsElapsed++;
+            if (secondsElapsed <= actualTotalSeconds) {
+                displayElement.innerText = formatTime(Math.max(0, visualSecondsRemaining));
+            } else {
+                clearInterval(interval);
+                displayElement.innerText = "Done!";
+                document.getElementById('status').innerText = "Session Complete!";
+                alert("Great practice session!");
+            }
+        }, 1000);
+    }
 
-                // This calculation slows down the display countdown
-                // Every 1.5 real seconds, the display only drops by 1 second.
-                let visualSecondsRemaining = displayTotalSeconds - (secondsElapsed * (displayTotalSeconds / actualTotalSeconds));
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+</script>
 
-                if (secondsElapsed <= actualTotalSeconds) {
-                    displayElement.innerText = formatTime(Math.max(0, visualSecondsRemaining));
-                } else {
-                    clearInterval(timerInterval);
-                    displayElement.innerText = "Done!";
-                    document.getElementById('status').innerText = "Practice Finished!";
-                    alert("Fantastic job today!");
-                }
-            }, 1000);
-        }
-
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-    </script>
 </body>
 </html>
